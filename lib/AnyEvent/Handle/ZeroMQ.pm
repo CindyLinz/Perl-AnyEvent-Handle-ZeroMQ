@@ -10,11 +10,11 @@ AnyEvent::Handle::ZeroMQ - Integrate AnyEvent and ZeroMQ with AnyEvent::Handle l
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -52,6 +52,7 @@ use warnings;
 
 use AE;
 use ZeroMQ qw(:all);
+use Scalar::Util qw(weaken);
 use constant {
     SOCKET => 0,
     RQUEUE => 1,
@@ -74,13 +75,17 @@ sub new {
 
     my $fd = $socket->getsockopt(ZMQ_FD);
 
-    my $self; $self = bless [
+    my($self, $wself);
+
+    $self = $wself = bless [
 	$socket,
 	[],
 	[],
-	AE::io($fd, 0, sub { _consume_read($self) }),
-	AE::io($fd, 0, sub { _consume_write($self) }),
+	AE::io($fd, 0, sub { _consume_read($wself) }),
+	AE::io($fd, 0, sub { _consume_write($wself) }),
     ], $class;
+
+    weaken $wself;
 
     return $self;
 }
@@ -132,6 +137,14 @@ sub push_write {
     my $self = shift;
     push @{$self->[WQUEUE]}, shift;
     _consume_write($self);
+}
+
+if( !exists(&ZeroMQ::Socket::DESTROY) ) {
+    *ZeroMQ::Socket::DESTROY = sub {
+	my $self = shift;
+	print STDERR "AAA\n";
+	eval { $self->close };
+    };
 }
 
 =head1 AUTHOR

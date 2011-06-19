@@ -1,5 +1,9 @@
 Revision history for AnyEvent-Handle-ZeroMQ
 
-0.01    Date/time
+0.02    2011.6.19
+        Add a DESTROY hook to ZeroMQ::Socket when there's no such one,
+	to close Socket when it was destroyed.
+
+0.01
         First version, released on an unsuspecting world.
 

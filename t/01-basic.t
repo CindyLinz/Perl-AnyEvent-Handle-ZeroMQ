@@ -37,5 +37,3 @@ $hdl_b->push_read(sub{
 $hdl_b->push_write(["", 'a', '123']);
 
 $done->recv;
-$socket_a->close;
-$socket_b->close;

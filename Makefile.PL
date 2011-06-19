@@ -14,6 +14,8 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+	'AnyEvent' => 5.34,
+	'ZeroMQ' => 0.15,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'AnyEvent-Handle-ZeroMQ-*' },

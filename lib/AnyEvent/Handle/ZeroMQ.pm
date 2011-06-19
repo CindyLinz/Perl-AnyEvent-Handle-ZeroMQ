@@ -6,7 +6,7 @@ use warnings;
 
 =head1 NAME
 
-AnyEvent::Handle::ZeroMQ - The great new AnyEvent::Handle::ZeroMQ!
+AnyEvent::Handle::ZeroMQ - Integrate AnyEvent and ZeroMQ with AnyEvent::Handle like ways.
 
 =head1 VERSION
 
@@ -19,39 +19,124 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use AnyEvent::Handle::ZeroMQ;
+    use AE;
+    use ZeroMQ;
 
-    my $foo = AnyEvent::Handle::ZeroMQ->new();
-    ...
+    my $ctx = ZeroMQ::Context->new;
+    my $socket = $ctx->socket(ZMQ_XREP);
+    $socket->bind('tcp://0:8888');
 
-=head1 EXPORT
+    my $hdl = AnyEvent::Handle::ZeroMQ->new($socket);
+    $hdl->push_read( sub {
+	my($hdl, $data) = @_;
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+	my @out;
+	while( my $msg = shift @$data) {
+	    push @out, $msg;
+	    last if $msg->size == 0;
+	}
+	while( my $msg = shift @$data ) {
+	    print "get: ",$msg->data,$/;
+	}
+	push @out, "get!";
+	$hdl->push_write(\@out);
+    } );
+
+    AE::cv->recv;
+
+=cut
+
+use strict;
+use warnings;
+
+use AE;
+use ZeroMQ qw(:all);
+use constant {
+    SOCKET => 0,
+    RQUEUE => 1,
+    WQUEUE => 2,
+    RWATCHER => 3,
+    WWATCHER => 4,
+};
+
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 new( socket => $zmq_socket )
 
 =cut
 
-sub function1 {
+sub new {
+    my $class = shift;
+    my %args = @_;
+    my $socket = $args{socket};
+
+    my $fd = $socket->getsockopt(ZMQ_FD);
+
+    my $self; $self = bless [
+	$socket,
+	[],
+	[],
+	AE::io($fd, 0, sub { _consume_read($self) }),
+	AE::io($fd, 0, sub { _consume_write($self) }),
+    ], $class;
+
+    return $self;
 }
 
-=head2 function2
-
+=head2 push_read( cb($hdl, $data (array_ref) )
 =cut
 
-sub function2 {
+sub _consume_read {
+    my $self = shift;
+
+    my $socket = $self->[SOCKET];
+    my $rqueue = $self->[RQUEUE];
+
+    while( @$rqueue && $socket->getsockopt(ZMQ_EVENTS) & ZMQ_POLLIN ) {
+	my @msgs;
+	{
+	    push @msgs, $socket->recv;
+	    redo if $socket->getsockopt(ZMQ_RCVMORE);
+	}
+	my $cb = shift @$rqueue;
+	$cb->($self, \@msgs);
+    }
+}
+
+sub push_read {
+    my $self = shift;
+    push @{$self->[RQUEUE]}, pop;
+    _consume_read($self);
+}
+
+=head2 push_write( $data (array_ref) )
+=cut
+
+sub _consume_write {
+    my $self = shift;
+
+    my $socket = $self->[SOCKET];
+    my $wqueue = $self->[WQUEUE];
+
+    while( @$wqueue && $socket->getsockopt(ZMQ_EVENTS) & ZMQ_POLLOUT ) {
+	my $msgs = shift @$wqueue;
+	while( defined( my $msg = shift @$msgs ) ) {
+	    $socket->send($msg, @$msgs ? ZMQ_SNDMORE : 0);
+	}
+    }
+}
+
+sub push_write {
+    my $self = shift;
+    push @{$self->[WQUEUE]}, shift;
+    _consume_write($self);
 }
 
 =head1 AUTHOR
 
-Cindy Wang (CindyLinz), C<< <cindylinz at gmail.com> >>
+Cindy Wang (CindyLinz)
 
 =head1 BUGS
 

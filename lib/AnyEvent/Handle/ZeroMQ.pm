@@ -10,7 +10,7 @@ AnyEvent::Handle::ZeroMQ - Integrate AnyEvent and ZeroMQ with AnyEvent::Handle l
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 

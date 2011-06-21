@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME                => 'AnyEvent::Handle::ZeroMQ',
-    AUTHOR              => q{Cindy Wang (CindyLinz) <cindylinz@gmail.com>},
+    AUTHOR              => q{Cindy Wang (CindyLinz)},
     VERSION_FROM        => 'lib/AnyEvent/Handle/ZeroMQ.pm',
     ABSTRACT_FROM       => 'lib/AnyEvent/Handle/ZeroMQ.pm',
     ($ExtUtils::MakeMaker::VERSION >= 6.3002

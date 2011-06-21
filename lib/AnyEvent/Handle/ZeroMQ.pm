@@ -27,7 +27,11 @@ our $VERSION = '0.02';
     my $socket = $ctx->socket(ZMQ_XREP);
     $socket->bind('tcp://0:8888');
 
-    my $hdl = AnyEvent::Handle::ZeroMQ->new($socket);
+    my $hdl = AnyEvent::Handle::ZeroMQ->new(
+	socket => $socket,
+	on_drain => sub { print "the write queue is empty\n" },
+    );
+    # or $hdl->on_drain( sub { ... } );
     $hdl->push_read( sub {
 	my($hdl, $data) = @_;
 
@@ -59,6 +63,7 @@ use constant {
     WQUEUE => 2,
     RWATCHER => 3,
     WWATCHER => 4,
+    ON_DRAIN => 5,
 };
 
 
@@ -83,14 +88,19 @@ sub new {
 	[],
 	AE::io($fd, 0, sub { _consume_read($wself) }),
 	AE::io($fd, 0, sub { _consume_write($wself) }),
+	undef,
     ], $class;
 
     weaken $wself;
 
+    if( exists $args{on_drain} ) {
+	on_drain($self);
+    }
+
     return $self;
 }
 
-=head2 push_read( cb($hdl, $data (array_ref) )
+=head2 push_read( cb($hdl, $data (array_ref) ) )
 =cut
 
 sub _consume_read {
@@ -125,12 +135,17 @@ sub _consume_write {
     my $socket = $self->[SOCKET];
     my $wqueue = $self->[WQUEUE];
 
+    my $write_something;
     while( @$wqueue && $socket->getsockopt(ZMQ_EVENTS) & ZMQ_POLLOUT ) {
 	my $msgs = shift @$wqueue;
 	while( defined( my $msg = shift @$msgs ) ) {
 	    $socket->send($msg, @$msgs ? ZMQ_SNDMORE : 0);
 	}
+
+	$write_something = 1;
     }
+
+    $self->[ON_DRAIN]($self) if( !@$wqueue && $write_something && $self->[ON_DRAIN] );
 }
 
 sub push_write {
@@ -142,9 +157,23 @@ sub push_write {
 if( !exists(&ZeroMQ::Socket::DESTROY) ) {
     *ZeroMQ::Socket::DESTROY = sub {
 	my $self = shift;
-	print STDERR "AAA\n";
 	eval { $self->close };
     };
+}
+
+=head2 old_cb = on_drain( cb(hdl) )
+=cut
+
+sub on_drain {
+    my $self = shift;
+    my $cb = pop;
+
+    $cb->($self) if( $cb && !@{$self->[WQUEUE]} );
+
+    my $old_cb = $self->[ON_DRAIN];
+    $self->[ON_DRAIN] = $cb;
+
+    return $old_cb;
 }
 
 =head1 AUTHOR

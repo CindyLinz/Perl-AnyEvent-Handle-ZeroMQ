@@ -10,11 +10,11 @@ AnyEvent::Handle::ZeroMQ - Integrate AnyEvent and ZeroMQ with AnyEvent::Handle l
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 =head1 SYNOPSIS
@@ -57,6 +57,11 @@ use warnings;
 use AE;
 use ZeroMQ qw(:all);
 use Scalar::Util qw(weaken);
+
+use base qw(Exporter);
+our %EXPORT_TAGS = ( constant => [qw(SOCKET RQUEUE WQUEUE RWATCHER WWATCHER ON_DRAIN DEALER ROUTER)] );
+our @EXPORT_OK = map { @$_ } values %EXPORT_TAGS;
+
 use constant {
     SOCKET => 0,
     RQUEUE => 1,
@@ -64,12 +69,14 @@ use constant {
     RWATCHER => 3,
     WWATCHER => 4,
     ON_DRAIN => 5,
+    DEALER => 6,
+    ROUTER => 7,
 };
 
 
 =head1 SUBROUTINES/METHODS
 
-=head2 new( socket => $zmq_socket )
+=head2 new( socket => $zmq_socket, on_drain(optional) => cb(hdl) )
 
 =cut
 
@@ -100,7 +107,7 @@ sub new {
     return $self;
 }
 
-=head2 push_read( cb($hdl, $data (array_ref) ) )
+=head2 push_read( cb(hdl, data (array_ref) ) )
 =cut
 
 sub _consume_read {
@@ -126,7 +133,7 @@ sub push_read {
     _consume_read($self);
 }
 
-=head2 push_write( $data (array_ref) )
+=head2 push_write( data (array_ref) )
 =cut
 
 sub _consume_write {

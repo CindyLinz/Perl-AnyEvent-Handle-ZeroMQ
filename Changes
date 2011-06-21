@@ -1,5 +1,9 @@
 Revision history for AnyEvent-Handle-ZeroMQ
 
+0.04    2011.6.21
+        Add dealer_new & router_new that dispatch corresponding
+        requests and replies automatically.
+
 0.03    2011.6.21
         Add on_drain
 

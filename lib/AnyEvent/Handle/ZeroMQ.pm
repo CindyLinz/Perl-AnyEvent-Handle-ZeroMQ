@@ -14,7 +14,7 @@ Version 0.02
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
@@ -94,7 +94,7 @@ sub new {
     weaken $wself;
 
     if( exists $args{on_drain} ) {
-	on_drain($self);
+	on_drain($self, $args{on_drain});
     }
 
     return $self;

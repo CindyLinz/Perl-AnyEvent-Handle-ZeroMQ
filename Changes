@@ -1,5 +1,8 @@
 Revision history for AnyEvent-Handle-ZeroMQ
 
+0.03    2011.6.21
+        Add on_drain
+
 0.02    2011.6.19
         Add a DESTROY hook to ZeroMQ::Socket when there's no such one,
 	to close Socket when it was destroyed.

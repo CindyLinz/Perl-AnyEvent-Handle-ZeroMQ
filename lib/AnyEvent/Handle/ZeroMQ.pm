@@ -36,7 +36,7 @@ our $VERSION = '0.04';
 	my($hdl, $data) = @_;
 
 	my @out;
-	while( my $msg = shift @$data) {
+	while( defined( my $msg = shift @$data ) ) {
 	    push @out, $msg;
 	    last if $msg->size == 0;
 	}
@@ -73,8 +73,7 @@ use constant {
     ROUTER => 7,
 };
 
-
-=head1 SUBROUTINES/METHODS
+=head1 METHODS
 
 =head2 new( socket => $zmq_socket, on_drain(optional) => cb(hdl) )
 

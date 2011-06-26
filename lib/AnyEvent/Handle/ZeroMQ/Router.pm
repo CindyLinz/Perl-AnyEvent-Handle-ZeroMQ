@@ -29,12 +29,22 @@ use base qw(AnyEvent::Handle::ZeroMQ);
 
     AE::cv->recv;
 
+=head1 METHODS
+
+=head2 new( socket => ..., on_drain => ... )
+
+get an AnyEvent::Handle::ZeroMQ::Dealer instance
+
 =cut
 
-sub new {
-    my $class = shift;
-    my $self = $class->SUPER::new(@_);
-}
+#sub new {
+#    my $class = shift;
+#    my $self = $class->SUPER::new(@_);
+#}
+
+=head2 push_read( cb(hdl, request_data(array_ref), reply_cb( reply_data(array_ref) ) ) )
+
+=cut
 
 sub push_read {
     my($self, $cb) = @_;
@@ -43,9 +53,9 @@ sub push_read {
 	my($self, $msgs) = @_;
 
 	my $i = 0;
-	++$i while( $msgs->[$i] ne '' );
+	++$i while( $msgs->[$i]->size );
 	my @header = splice @$msgs, 0, $i;
-	shift @$msgs if $msgs->[0] eq '';
+	shift @$msgs;
 
 	$cb->($self, $msgs, sub {
 	    my($msgs) = @_;
@@ -54,6 +64,12 @@ sub push_read {
 	});
     } );
 }
+
+=head2 push_write
+
+Don't use this.
+
+=cut
 
 sub push_write {
     warn __PACKAGE__."::push_write shouldn't be called.";

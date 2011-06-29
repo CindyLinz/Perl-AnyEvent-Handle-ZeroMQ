@@ -10,11 +10,11 @@ AnyEvent::Handle::ZeroMQ - Integrate AnyEvent and ZeroMQ with AnyEvent::Handle l
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 
 =head1 SYNOPSIS
@@ -30,8 +30,11 @@ our $VERSION = '0.04';
     my $hdl = AnyEvent::Handle::ZeroMQ->new(
 	socket => $socket,
 	on_drain => sub { print "the write queue is empty\n" },
+	on_error => sub { my($error_msg) = @_; ... },
+	    # catch errors when occured in the reading callback
     );
     # or $hdl->on_drain( sub { ... } );
+    # or $hdl->on_error( sub { ... } );
     $hdl->push_read( sub {
 	my($hdl, $data) = @_;
 
@@ -71,6 +74,7 @@ use constant {
     ON_DRAIN => 5,
     DEALER => 6,
     ROUTER => 7,
+    ON_ERROR => 8,
 };
 
 =head1 METHODS
@@ -102,11 +106,15 @@ sub new {
     if( exists $args{on_drain} ) {
 	on_drain($self, $args{on_drain});
     }
+    if( exists $args{on_error} ) {
+	on_error($self, $args{on_error});
+    }
 
     return $self;
 }
 
 =head2 push_read( cb(hdl, data (array_ref) ) )
+
 =cut
 
 sub _consume_read {
@@ -122,7 +130,15 @@ sub _consume_read {
 	    redo if $socket->getsockopt(ZMQ_RCVMORE);
 	}
 	my $cb = shift @$rqueue;
-	$cb->($self, \@msgs);
+	eval { $cb->($self, \@msgs) };
+	if( $@ ) {
+	    if( $self->[ON_ERROR] ) {
+		$self->[ON_ERROR]($@);
+	    }
+	    else {
+		warn $@;
+	    }
+	}
     }
 }
 
@@ -133,6 +149,7 @@ sub push_read {
 }
 
 =head2 push_write( data (array_ref) )
+
 =cut
 
 sub _consume_write {
@@ -168,6 +185,7 @@ if( !exists(&ZeroMQ::Socket::DESTROY) ) {
 }
 
 =head2 old_cb = on_drain( cb(hdl) )
+
 =cut
 
 sub on_drain {
@@ -178,6 +196,20 @@ sub on_drain {
 
     my $old_cb = $self->[ON_DRAIN];
     $self->[ON_DRAIN] = $cb;
+
+    return $old_cb;
+}
+
+=head2 old_cb = on_error( cb(hdl) )
+
+=cut
+
+sub on_error {
+    my $self = shift;
+    my $cb = pop;
+
+    my $old_cb = $self->[ON_ERROR];
+    $self->[ON_ERROR] = $cb;
 
     return $old_cb;
 }

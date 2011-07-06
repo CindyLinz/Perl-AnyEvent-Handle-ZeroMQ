@@ -1,5 +1,8 @@
 Revision history for AnyEvent-Handle-ZeroMQ
 
+0.06    2011.7.6
+        Lost files
+
 0.05    2011.6.29
         Add on_error to AnyEvent::Handler::ZeroMQ to catch errors occurs in the
         reading handler.

@@ -6,6 +6,12 @@ use warnings;
 
 use base qw(AnyEvent::Handle::ZeroMQ);
 
+our $VERSION = $AnyEvent::Handle::ZeroMQ::Version;
+
+=head1 NAME
+
+AnyEvent::Handle::ZeroMQ::Router - use AnyEvent::Handle::ZeroMQ as concurrent reply-request pattern
+
 =head1 SYNOPSIS
 
     use AnyEvent::Handle::ZeroMQ::Router;

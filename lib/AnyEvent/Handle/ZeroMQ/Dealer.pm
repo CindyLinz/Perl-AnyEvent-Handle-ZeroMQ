@@ -7,6 +7,12 @@ use warnings;
 use AnyEvent::Handle::ZeroMQ qw(:constant);
 use base qw(AnyEvent::Handle::ZeroMQ);
 
+our $VERSION = $AnyEvent::Handle::ZeroMQ::Version;
+
+=head1 NAME
+
+AnyEvent::Handle::ZeroMQ::Dealer - use AnyEvent::Handle::ZeroMQ as concurrent request-reply pattern
+
 =head1 SYNOPSIS
 
     use AnyEvent::Handle::ZeroMQ::Dealer;

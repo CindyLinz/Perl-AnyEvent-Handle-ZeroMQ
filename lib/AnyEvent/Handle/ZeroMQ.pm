@@ -10,11 +10,11 @@ AnyEvent::Handle::ZeroMQ - Integrate AnyEvent and ZeroMQ with AnyEvent::Handle l
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 
 =head1 SYNOPSIS
@@ -213,6 +213,19 @@ sub on_error {
 
     return $old_cb;
 }
+
+=head1 DIFFERENCES
+
+There is also a module called L<AnyEvent::ZeroMQ> in CPAN.
+
+AnyEvent::ZeroMQ::* is a huge, heavy,
+and full-functioned framework, but this module is a simple,
+lightweight library with less dependency, and runs faster.
+
+So this module is only occupy a smaller namespace
+under AnyEvent::Handle::
+
+This module and AnyEvent::ZeroMQ::* are not replacable to each other.
 
 =head1 AUTHOR
 

@@ -1,5 +1,8 @@
 Revision history for AnyEvent-Handle-ZeroMQ
 
+0.07    2011.7.23
+        Change the ZMQ_EVENTS test order, to avoid ZMQ keeps in calling the handler steadily.
+
 0.06    2011.7.6
         Lost files
 

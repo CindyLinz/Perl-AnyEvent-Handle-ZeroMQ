@@ -10,11 +10,11 @@ AnyEvent::Handle::ZeroMQ - Integrate AnyEvent and ZeroMQ with AnyEvent::Handle l
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 
 =head1 SYNOPSIS
@@ -123,7 +123,7 @@ sub _consume_read {
     my $socket = $self->[SOCKET];
     my $rqueue = $self->[RQUEUE];
 
-    while( @$rqueue && $socket->getsockopt(ZMQ_EVENTS) & ZMQ_POLLIN ) {
+    while( $socket->getsockopt(ZMQ_EVENTS) & ZMQ_POLLIN && @$rqueue ) {
 	my @msgs;
 	{
 	    push @msgs, $socket->recv;
@@ -159,7 +159,7 @@ sub _consume_write {
     my $wqueue = $self->[WQUEUE];
 
     my $write_something;
-    while( @$wqueue && $socket->getsockopt(ZMQ_EVENTS) & ZMQ_POLLOUT ) {
+    while( $socket->getsockopt(ZMQ_EVENTS) & ZMQ_POLLOUT && @$wqueue ) {
 	my $msgs = shift @$wqueue;
 	while( defined( my $msg = shift @$msgs ) ) {
 	    $socket->send($msg, @$msgs ? ZMQ_SNDMORE : 0);

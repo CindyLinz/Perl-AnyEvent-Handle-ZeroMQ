@@ -1,5 +1,8 @@
 Revision history for AnyEvent-Handle-ZeroMQ
 
+0.09    2011.9.4
+        Fix a bug occured when busy on both reading and writing.
+
 0.08    2011.7.23
         Documented more.
 

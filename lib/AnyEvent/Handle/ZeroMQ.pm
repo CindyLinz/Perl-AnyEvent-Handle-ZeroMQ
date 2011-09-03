@@ -10,11 +10,11 @@ AnyEvent::Handle::ZeroMQ - Integrate AnyEvent and ZeroMQ with AnyEvent::Handle l
 
 =head1 VERSION
 
-Version 0.08
+Version 0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 
 =head1 SYNOPSIS
@@ -69,12 +69,11 @@ use constant {
     SOCKET => 0,
     RQUEUE => 1,
     WQUEUE => 2,
-    RWATCHER => 3,
-    WWATCHER => 4,
-    ON_DRAIN => 5,
-    DEALER => 6,
-    ROUTER => 7,
-    ON_ERROR => 8,
+    WATCHER => 3,
+    ON_DRAIN => 4,
+    DEALER => 5,
+    ROUTER => 6,
+    ON_ERROR => 7,
 };
 
 =head1 METHODS
@@ -96,8 +95,7 @@ sub new {
 	$socket,
 	[],
 	[],
-	AE::io($fd, 0, sub { _consume_read($wself) }),
-	AE::io($fd, 0, sub { _consume_write($wself) }),
+	AE::io($fd, 0, sub { _consume_read_write($wself) }),
 	undef,
     ], $class;
 
@@ -111,6 +109,11 @@ sub new {
     }
 
     return $self;
+}
+
+sub _consume_read_write {
+    _consume_write(@_);
+    _consume_read(@_);
 }
 
 =head2 push_read( cb(hdl, data (array_ref) ) )
